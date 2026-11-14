@@ -33,6 +33,7 @@ import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import android.window.OnBackInvokedDispatcher
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
 import java.io.IOException
@@ -176,8 +177,8 @@ class MainActivity : Activity() {
     private fun color(label: String, id: String, value: String) = Item.Cmd(label, id, """{"color":"$value"}""")
     private fun numberFormat(label: String, format: String) = Item.Cmd(label, "home.numberFormat", """{"format":"$format"}""")
 
-    private val menuItems: List<Item> by lazy {
-        listOf(
+    private fun menuItems(): List<Item> {
+        return listOf(
             Item.Group("Edit", listOf(
                 Item.Act("Cut") { copy(cut = true) },
                 Item.Act("Copy") { copy(cut = false) },
@@ -218,6 +219,9 @@ class MainActivity : Activity() {
             Item.Cmd("Find…", "ui.dialog", """{"name":"find"}"""),
             Item.Cmd("Format Cells…", "home.formatCells"),
             Item.Act("Open…") { askToOpen() },
+            Item.Group("Recent Files", recentFiles().map { (uri, name) ->
+                Item.Act(if (uri == docUri) "$name  (open)" else name) { openRecent(uri) }
+            }.ifEmpty { listOf(Item.Act("No recent files yet") {}) }),
             Item.Act("Save As…") { save(asCopy = true) },
             Item.Act("Close") { close() },
         )
@@ -227,10 +231,11 @@ class MainActivity : Activity() {
         val popup = PopupMenu(this, anchor)
         val actions = HashMap<Int, Item>()
         var nextItem = 1
-        for (item in menuItems) {
+        for (item in menuItems()) {
             when (item) {
                 is Item.Group -> {
-                    val sub = popup.menu.addSubMenu(item.label)
+                    val order = nextItem++ // keep submenus in list order (addSubMenu(label) would put them all first)
+                    val sub = popup.menu.addSubMenu(0, order, order, item.label)
                     for (child in item.items) {
                         val id = nextItem++
                         actions[id] = child
@@ -446,6 +451,41 @@ class MainActivity : Activity() {
         js("GC.closeToBlank($id)")
     }
 
+    // ---------------------------------------------------------------- recent files
+
+    private val recentPrefs by lazy { getSharedPreferences("recent", MODE_PRIVATE) }
+
+    /** Most recent first: files opened or saved here, as (uri, name). */
+    private fun recentFiles(): List<Pair<Uri, String>> = runCatching {
+        val a = JSONArray(recentPrefs.getString("files", "[]"))
+        (0 until a.length()).map { a.getJSONObject(it).let { o -> Uri.parse(o.getString("uri")) to o.getString("name") } }
+    }.getOrDefault(emptyList())
+
+    private fun storeRecent(list: List<Pair<Uri, String>>) {
+        val a = JSONArray()
+        list.take(MAX_RECENT).forEach { (uri, name) -> a.put(JSONObject().put("uri", uri.toString()).put("name", name)) }
+        recentPrefs.edit().putString("files", a.toString()).apply()
+    }
+
+    private fun rememberRecent(uri: Uri, name: String) = storeRecent(listOf(uri to name) + recentFiles().filter { it.first != uri })
+
+    private fun forgetRecent(uri: Uri) {
+        storeRecent(recentFiles().filter { it.first != uri })
+        runCatching { contentResolver.releasePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION) }
+    }
+
+    /** Keep read/write access across restarts when Android allows it (picker results always do). */
+    private fun keepAccess(uri: Uri) {
+        val rw = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        runCatching { contentResolver.takePersistableUriPermission(uri, rw) }
+            .recoverCatching { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+    }
+
+    private fun openRecent(uri: Uri) {
+        if (uri == docUri) return
+        confirmDiscard { load(uri, fromRecent = true) }
+    }
+
     // ---------------------------------------------------------------- opening
 
     private fun askToOpen() = confirmDiscard {
@@ -465,6 +505,7 @@ class MainActivity : Activity() {
                 else @Suppress("DEPRECATION") intent.getParcelableExtra(Intent.EXTRA_STREAM)
             else -> null
         } ?: return
+        keepAccess(uri) // works when the sending app allows it; otherwise the recent entry lasts until the app restarts
         confirmDiscard { load(uri) }
     }
 
@@ -477,7 +518,7 @@ class MainActivity : Activity() {
         return uri.lastPathSegment?.substringAfterLast('/') ?: "Workbook.xlsx"
     }
 
-    private fun load(uri: Uri) {
+    private fun load(uri: Uri, fromRecent: Boolean = false) {
         title.text = "Opening…"
         io.execute {
             val result = runCatching {
@@ -489,7 +530,11 @@ class MainActivity : Activity() {
             main.post {
                 result.onFailure { e ->
                     showTitle()
-                    showError("Couldn't open the file", e.message ?: e.toString())
+                    if (fromRecent) {
+                        forgetRecent(uri)
+                        showError("Couldn't open the file",
+                            "It may have been moved or deleted, or the app's access to it has ended. Use Open… to pick it again.")
+                    } else showError("Couldn't open the file", e.message ?: e.toString())
                 }.onSuccess { (name, b64) ->
                     pendingName = name
                     pendingData = b64
@@ -498,6 +543,7 @@ class MainActivity : Activity() {
                             docUri = uri
                             docName = name
                             showTitle()
+                            rememberRecent(uri, name)
                         } else {
                             showTitle()
                             showError("Couldn't open $name", r.optString("error"))
@@ -573,6 +619,7 @@ class MainActivity : Activity() {
         docUri = uri
         docName = name
         showTitle()
+        rememberRecent(uri, name)
         toast("Saved")
         val id = register { after?.invoke() }
         js("GC.markSaved($id)")
@@ -585,9 +632,7 @@ class MainActivity : Activity() {
         val uri = data?.data
         when (requestCode) {
             REQ_OPEN -> if (resultCode == RESULT_OK && uri != null) {
-                runCatching {
-                    contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                }
+                keepAccess(uri)
                 load(uri)
             }
             REQ_CREATE -> {
@@ -596,6 +641,7 @@ class MainActivity : Activity() {
                 saveBytes = null
                 afterSave = null
                 if (resultCode != RESULT_OK || uri == null || bytes == null) { showTitle(); return }
+                keepAccess(uri)
                 write(uri, bytes) { ok ->
                     if (ok) savedTo(uri, displayName(uri), after)
                     else { showTitle(); showError("Couldn't save", "Android didn't let the app write there.") }
@@ -609,6 +655,7 @@ class MainActivity : Activity() {
         private const val HOST = "appassets.androidplatform.net"
         private const val REQ_OPEN = 1
         private const val REQ_CREATE = 2
+        private const val MAX_RECENT = 8
         private const val MAX_OPEN_BYTES = 200L * 1024 * 1024
         private const val XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         private val OPEN_TYPES = arrayOf(
