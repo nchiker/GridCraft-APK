@@ -21,7 +21,11 @@ Release signing: key made 2026-11-14 in `~/APK-Keys/gridcraft/` (cert SHA-256 dc
 `APK-Keys/README.txt`). Backed up with Key Vault (2026-11-14). `./gradlew :app:assembleRelease` signs with it
 (9.7 MB APK).
 
-Ask ArtCraft for (owner reviews before anything is posted): a `?chrome=` option that hides the tab row/ribbon,
-Excel-style "show tabs only" (ribbon closes after use), the tab row not scrolling on narrow screens, the Format Cells
-dialog growing wider than a phone screen when a long number-format code is selected (e.g. Accounting), and the status
-bar's Count/Sum text overlapping "Ready" on a narrow screen.
+Reported to ArtCraft (storytold/gridcraft), 2026-11-14:
+- #4185 tab row cut off and not scrollable on narrow windows
+- #4186 Format Cells dialog wider than a narrow window (long number format)
+- #4187 status bar Count overlaps "Ready"
+- #4188 `?chrome=` option to hide the ribbon for hosts with their own menu
+- #4189 Excel-style "Show tabs only" (temporary ribbon)
+- comment on #3849 (page host mode works for us in 0.19.1) and #2313 (zoom on the undo stack; a noundo fix is proposed).
+When a fix lands in a release, update `gridcraft.version` and drop the matching workaround (host.js: interface 85%, undo skipping).
