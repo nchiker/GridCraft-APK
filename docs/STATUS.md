@@ -1,5 +1,12 @@
 # Status
 
+## 2026-11-14: v0.1.0 released
+
+GitHub release v0.1.0 (https://github.com/nchiker/GridCraft-APK/releases/tag/v0.1.0): `GridCraft-0.1.0.apk` + `SHA256SUMS`
+(APK SHA-256 368f4a8c…732b, signed with the gridcraft key). Installed on the owner's phone 2026-11-14 at the owner's request.
+Release steps: bump `versionCode`/`versionName` in `android/app/build.gradle.kts`, `./gradlew :app:assembleRelease`, copy to
+`dist/GridCraft-<ver>.apk`, `sha256sum > dist/SHA256SUMS`, tag `v<ver>`, `gh release create` with both files.
+
 ## 2026-11-14: first build (0.1.0, debug only)
 
 Works on the Pixel 4a (checked by hand):
