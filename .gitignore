@@ -1,0 +1,12 @@
+# Downloaded by scripts/fetch-gridcraft.sh (pinned + checksummed in gridcraft.version)
+/android/app/src/main/assets/gridcraft/
+/build-out/
+/dist/
+*.keystore
+*.jks
+keystore.properties
+local.properties
+/android/.gradle/
+/android/build/
+/android/app/build/
+.kotlin/

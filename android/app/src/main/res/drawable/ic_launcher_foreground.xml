@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Original: a green-headed spreadsheet grid. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#FFFFFF" android:pathData="M30,30h48v48h-48z"/>
+    <path android:fillColor="#1E7145" android:pathData="M30,30h48v12h-48z"/>
+    <path android:fillColor="#1E7145" android:pathData="M30,42h10v36h-10z"/>
+    <path android:fillColor="#B8C4BD" android:pathData="M40,53h38v1.5h-38zM40,65h38v1.5h-38zM52.5,42h1.5v36h-1.5zM65,42h1.5v36h-1.5z"/>
+    <path android:fillColor="#F2C744" android:pathData="M54,54.5h11v10.5h-11z"/>
+</vector>

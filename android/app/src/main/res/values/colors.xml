@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bar">#F3F3F3</color>
+    <color name="bar_text">#202020</color>
+    <color name="accent">#1E7145</color>
+    <color name="icon_bg">#DDEFE4</color>
+</resources>

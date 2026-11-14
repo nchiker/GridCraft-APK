@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!-- Our page around the unchanged GridCraft @VERSION@ web build (page host mode, HOSTING.md).
+     scripts/fetch-gridcraft.sh fills in the release's hashed file names. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
+  <title>GridCraft</title>
+  <style>
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #f3f3f3; }
+    @media (prefers-color-scheme: dark) { html, body { background: #1f1f1f; color: #ddd; } }
+    #gridcraft_canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; outline: none; }
+    #gridcraft_loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      color: #777; font: 16px system-ui, sans-serif; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <canvas id="gridcraft_canvas" data-host="page"></canvas>
+  <div id="gridcraft_loading">Loading GridCraft&hellip;</div>
+  <script src="host.js"></script>
+  <script type="module">
+    import init from './@GLUE_JS@';
+    try {
+      await init({ module_or_path: './@WASM@' });
+    } catch (e) {
+      GC.failed(String(e && e.stack || e));
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# The ArtCraft GridCraft web release bundled into the app, unchanged.
+# Update: change both lines (the SHA-256 is the zip's line in the release's SHA256SUMS.txt),
+# then run scripts/fetch-gridcraft.sh and rebuild.
+GRIDCRAFT_VERSION=0.19.1
+GRIDCRAFT_WEB_SHA256=48c5d1b101befebb3c5ba3b7a14914f01c3207934813ed07dc4251b7ae116a78
