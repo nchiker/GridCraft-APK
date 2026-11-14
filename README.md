@@ -2,7 +2,9 @@
 
 A small Android app for viewing spreadsheets and making minor edits on a phone. It runs ArtCraft's
 [GridCraft](https://github.com/storytold/gridcraft) unchanged, from GridCraft's official web release, and adds a
-phone-sized bar and menu around it. This is a personal project: it is not made, endorsed or supported by ArtCraft.
+phone-sized bar and menu around it. Independent project: it is not affiliated with, endorsed by, or sponsored by
+ArtCraft or the GridCraft authors, nor by Microsoft. GridCraft, ArtCraft and Excel are names and trademarks of their
+owners, used here only to name the program this app runs and the file formats it opens.
 
 ## What it does
 
@@ -26,7 +28,14 @@ phone-sized bar and menu around it. This is a personal project: it is not made, 
 
 Build: `source env.sh && cd android && ./gradlew :app:assembleDebug` (JDK 21 and the Android SDK; paths in `env.sh`).
 
+## Install
+
+Download `GridCraft-<version>.apk` from [Releases](https://github.com/nchiker/GridCraft-APK/releases) and open it on an
+Android 10+ phone, allowing installs from the app you opened it with. Check it with `sha256sum -c SHA256SUMS`.
+
 ## Licences
+
+This app's own code: MPL-2.0 (see `LICENSE`).
 
 GridCraft is MIT OR Apache-2.0 by its authors; its LICENSE, NOTICE and ATTRIBUTION files ship in the app's assets.
 The bar icons are Material icons (Apache-2.0).
