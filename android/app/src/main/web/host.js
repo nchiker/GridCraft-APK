@@ -162,6 +162,17 @@
       }).then((v) => reply(id, true, v), (e) => reply(id, false, e && e.message || e));
     },
 
+    /** Close: replaces the open workbook with a new blank one (the app asked about saving first). */
+    closeToBlank(id) {
+      queue(async () => {
+        const g = await api();
+        await g.execute("file.new", {});
+        await closeOthers(g);
+        await showAtAppZoom(g);
+        return { title: (await g.docInspect()).title };
+      }).then((v) => reply(id, true, v), (e) => reply(id, false, e && e.message || e));
+    },
+
     /** Saves: puts each sheet's own zoom back, asks GridCraft for the workbook, shows 200% again. */
     save(id) {
       queue(async () => {

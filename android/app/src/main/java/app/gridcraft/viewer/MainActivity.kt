@@ -219,6 +219,7 @@ class MainActivity : Activity() {
             Item.Cmd("Format Cells…", "home.formatCells"),
             Item.Act("Open…") { askToOpen() },
             Item.Act("Save As…") { save(asCopy = true) },
+            Item.Act("Close") { close() },
         )
     }
 
@@ -432,6 +433,17 @@ class MainActivity : Activity() {
                 .show()
         }
         js("GC.isDirty($id)")
+    }
+
+    /** Close the file (asking about unsaved changes) and show a new blank workbook. */
+    private fun close() = confirmDiscard {
+        val id = register { r ->
+            if (!r.optBoolean("ok")) { toast(r.optString("error", "Couldn't close the file")); return@register }
+            docUri = null
+            docName = (r.optJSONObject("value")?.optString("title")?.ifEmpty { null } ?: "Book1") + ".xlsx"
+            showTitle()
+        }
+        js("GC.closeToBlank($id)")
     }
 
     // ---------------------------------------------------------------- opening

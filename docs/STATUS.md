@@ -9,7 +9,7 @@ Works on the Pixel 4a (checked by hand):
 - Save writes back to the same .xlsx, with each sheet's own zoom restored in the file (checked by unzipping it).
 
 Full menu test on the 4a (Sonnet agent, 2026-11-14): every menu item, Undo/Redo, Find…/Format Cells… + Back,
-ribbon + Back, the unsaved-changes prompt (Back and Open), Save in place, Save As…, rotation, paste from another app: all PASS.
+ribbon + Back, the unsaved-changes prompt (Back, Open and Close), Save in place, Save As…, rotation, paste from another app: all PASS.
 Fixed after it: Undo could undo the app's own startup zoom (now one real edit per tap, skipping zoom/sheet-switch
 entries); set-up failed when the app started with the screen off (now waits until visible).
 
