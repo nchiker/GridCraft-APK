@@ -85,12 +85,33 @@
     await showAtAppZoom(g);
   }
 
+  /** Resolves once the page is on screen (GridCraft only answers commands while it draws). */
+  function visible() {
+    if (document.visibilityState === "visible") return Promise.resolve();
+    return new Promise((r) => document.addEventListener("visibilitychange", function on() {
+      if (document.visibilityState !== "visible") return;
+      document.removeEventListener("visibilitychange", on);
+      r();
+    }));
+  }
+
   canvas.addEventListener("gridcraft:ready", () => {
     queue(async () => {
       const g = await api();
-      await setUp(g);
+      // Started with the screen off (or the app in the background): set up when it's shown.
+      for (let attempt = 1; ; attempt++) {
+        await visible();
+        try {
+          await setUp(g);
+          break;
+        } catch (e) {
+          log("set-up attempt " + attempt + " failed: " + (e && e.message || e));
+          if (attempt >= 5) throw e;
+          await sleep(500);
+        }
+      }
       A.onReady();
-    }).catch((e) => GC.failed(String(e)));
+    }).catch((e) => GC.failed(String(e && e.message || e)));
   });
 
   canvas.addEventListener("gridcraft:save", (ev) => {
@@ -161,6 +182,27 @@
     /** The app wrote the file: what is open now counts as saved. */
     markSaved(id) {
       queue(async () => { baseline = await edits(await api()); }).then(() => reply(id, true, null), (e) => reply(id, false, e));
+    },
+
+    /**
+     * Undo/Redo for the bar buttons: one real edit per tap, taking any zoom or sheet switches next
+     * to it along, so the app's own zoom changes (on open and save) are never undone on their own.
+     * Answers false when there is no edit to undo/redo.
+     */
+    undo(id) { this.history(id, "undo"); },
+    redo(id) { this.history(id, "redo"); },
+    history(id, which) {
+      queue(async () => {
+        const g = await api();
+        const list = (await g.execute("history.list", {}))[which] || []; // next step first
+        const real = list.findIndex((u) => !VIEW_ONLY.has(u));
+        if (real < 0) return false;
+        let steps = real + 1;
+        // Redo also replays the view changes that followed the edit, as undo took them back with it.
+        if (which === "redo") while (steps < list.length && VIEW_ONLY.has(list[steps])) steps++;
+        await g.execute("edit." + which, { steps });
+        return true;
+      }).then((v) => reply(id, true, v), (e) => reply(id, false, e && e.message || e));
     },
 
     /** Back: closes a dialog, a cell edit or the open ribbon; answers false when there was none. */

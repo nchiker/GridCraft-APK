@@ -20,3 +20,5 @@ Read `docs/STATUS.md` first. This folder is its OWN git repo (branch `main`), no
 - Live debugging: the debug build allows WebView remote debugging. `adb forward tcp:9334 localabstract:webview_devtools_remote_<pid>`,
   then CDP (Node's built-in WebSocket) to run `window.gridcraft.*` and `GC.*` in the page.
 - Use cheaper models (sonnet/haiku subagents) for routine testing and doc updates (owner's rule).
+- Other sessions on this machine also drive phones/browsers over CDP: use an unusual local port for the WebView forward
+  (e.g. 19735, not 9333/9334). A clash once navigated the app's WebView to another project's test page.

@@ -128,8 +128,8 @@ class MainActivity : Activity() {
         }
         bar.addView(title)
         bar.addView(button(R.drawable.ic_open, "Open") { askToOpen() })
-        bar.addView(button(R.drawable.ic_undo, "Undo") { run("edit.undo") })
-        bar.addView(button(R.drawable.ic_redo, "Redo") { run("edit.redo") })
+        bar.addView(button(R.drawable.ic_undo, "Undo") { undoRedo("undo") })
+        bar.addView(button(R.drawable.ic_redo, "Redo") { undoRedo("redo") })
         bar.addView(button(R.drawable.ic_save, "Save") { save() })
         root.addView(bar, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(56)))
 
@@ -218,7 +218,7 @@ class MainActivity : Activity() {
             Item.Cmd("Find…", "ui.dialog", """{"name":"find"}"""),
             Item.Cmd("Format Cells…", "home.formatCells"),
             Item.Act("Open…") { askToOpen() },
-            Item.Act("Save a Copy…") { save(asCopy = true) },
+            Item.Act("Save As…") { save(asCopy = true) },
         )
     }
 
@@ -257,6 +257,16 @@ class MainActivity : Activity() {
         is Item.Cmd -> item.label
         is Item.Act -> item.label
         is Item.Group -> item.label
+    }
+
+    /** Undo/redo one real edit (host.js skips the app's own zoom changes). */
+    private fun undoRedo(which: String) {
+        if (!ready) return
+        val id = register { r ->
+            if (!r.optBoolean("ok")) toast(r.optString("error", "That didn't work"))
+            else if (!r.optBoolean("value")) toast(if (which == "undo") "Nothing to undo" else "Nothing to redo")
+        }
+        js("GC.$which($id)")
     }
 
     private fun copy(cut: Boolean) {
