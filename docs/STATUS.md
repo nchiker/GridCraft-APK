@@ -18,7 +18,7 @@ be written (should ask where to save), the unsaved-changes prompt, Back behaviou
 rotation, a large real-world-sized file.
 
 Release signing: key made 2026-11-14 in `~/APK-Keys/gridcraft/` (cert SHA-256 dc3863a4…74c3, entry added to
-`APK-Keys/README.txt`). The owner still needs to run Key Vault so it is backed up. `./gradlew :app:assembleRelease` signs with it
+`APK-Keys/README.txt`). Backed up with Key Vault (2026-11-14). `./gradlew :app:assembleRelease` signs with it
 (9.7 MB APK).
 
 Ask ArtCraft for (owner reviews before anything is posted): a `?chrome=` option that hides the tab row/ribbon,
